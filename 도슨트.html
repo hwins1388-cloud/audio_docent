@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Audio Guide Setup</title>
+
+  <style>
+    :root{
+      --bg:#f0f0f0;
+      --card:#fff;
+      --border:#d7d7d7;
+      --text:#111;
+      --muted:#666;
+      --radius:18px;
+      --shadow: 0 10px 30px rgba(0,0,0,.08);
+    }
+
+    *{
+      box-sizing:border-box;
+    }
+
+    html, body{
+      margin:0;
+      padding:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans KR", sans-serif;
+    }
+
+    body{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:flex-start;
+      min-height:100vh;
+      padding:16px 16px 8px;   /* 하단 여백 축소 */
+      overflow-x:hidden;
+    }
+
+    .container{
+      width:min(720px, 100%);
+      background:var(--card);
+      border:1px solid var(--border);
+      padding:20px;
+      text-align:center;
+      position:relative;
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      min-height:auto;
+    }
+
+    /* ===== Screen 1 ===== */
+    #screen1{ display:block; }
+
+    #screen1 h2{
+      margin:0 0 14px;
+      text-align:left;
+      font-size:20px;
+      font-weight:800;
+    }
+
+    .language-buttons{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:12px;
+  margin-top:8px;
+}
+
+.language-row{
+  display:flex;
+  justify-content:center;
+  gap:12px;
+  flex-wrap:nowrap;
+}
+
+    .lang-btn{
+      padding:11px 20px;
+      border:1px solid #111;
+      border-radius:999px;
+      background:transparent;
+      cursor:pointer;
+      font-size:15px;
+      font-weight:800;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform .08s ease, background .15s ease;
+    }
+    .lang-btn:active{ transform:scale(.98); }
+
+    .hint{
+      margin:12px 0 0;
+      text-align:left;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.45;
+    }
+
+    /* ===== Screen 2 ===== */
+    #screen2{
+      display:none;
+      max-height:calc(100vh - 24px); /* 데스크톱에서 화면 높이 안에 맞춤 */
+      overflow:hidden;
+    }
+
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:10px;
+    }
+
+    .back-btn{
+      border:1px solid var(--border);
+      background:#fff;
+      border-radius:12px;
+      padding:9px 12px;
+      cursor:pointer;
+      font-weight:800;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform .08s ease;
+    }
+    .back-btn:active{ transform:scale(.98); }
+
+    .spot-name{
+      font-weight:800;
+      color:var(--muted);
+      font-size:13px;
+      white-space:nowrap;
+    }
+
+    .photoBox{
+      width:100%;
+      height:172px;
+      border:1px solid var(--border);
+      border-radius:16px;
+      overflow:hidden;
+      background:#fafafa;
+      margin:6px 0 12px;
+    }
+    .photoBox img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
+    }
+
+    #spot-title{
+      font-size:clamp(22px, 3.3vw, 28px);
+      margin:8px 0 12px;
+      font-weight:900;
+      letter-spacing:-0.4px;
+    }
+
+    .seekWrap{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      width:100%;
+      margin:4px 0 12px;
+    }
+    .time{
+      width:48px;
+      text-align:center;
+      font-variant-numeric: tabular-nums;
+      color:var(--muted);
+      font-size:13px;
+      flex:0 0 auto;
+    }
+
+    input[type="range"]{
+      -webkit-appearance:none;
+      appearance:none;
+      width:100%;
+      height:8px;
+      border-radius:999px;
+      background: linear-gradient(to right, #111 0%, #111 0%, #e6e6e6 0%, #e6e6e6 100%);
+      outline:none;
+      cursor:pointer;
+    }
+    input[type="range"]::-webkit-slider-thumb{
+      -webkit-appearance:none;
+      appearance:none;
+      width:18px;
+      height:18px;
+      border-radius:50%;
+      background:#111;
+      border:2px solid #fff;
+      box-shadow: 0 6px 12px rgba(0,0,0,.18);
+    }
+
+    .controls{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-top:2px;
+    }
+
+    .skip-btn{
+      border:1px solid var(--border);
+      background:#fff;
+      border-radius:12px;
+      padding:10px 12px;
+      cursor:pointer;
+      font-weight:900;
+      min-width:110px;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform .08s ease;
+    }
+    .skip-btn:active{ transform:scale(.98); }
+
+    .play-btn{
+      width:clamp(56px, 12vw, 78px);
+      height:clamp(56px, 12vw, 78px);
+      border-radius:50%;
+      border:1px solid var(--border);
+      background: radial-gradient(120% 120% at 30% 20%, #ffffff 0%, #f3f3f3 45%, #ededed 100%);
+      box-shadow: 0 10px 22px rgba(0,0,0,.10);
+      cursor:pointer;
+      display:grid;
+      place-items:center;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform .08s ease, box-shadow .15s ease;
+    }
+    .play-btn:active{ transform:scale(.98); }
+
+    .play-btn .icon.pause{ display:none; }
+    .play-btn.is-playing .icon.play{ display:none; }
+    .play-btn.is-playing .icon.pause{ display:flex; }
+    .play-btn.is-playing{
+      box-shadow: 0 14px 26px rgba(0,0,0,.14);
+      transform: translateY(-1px);
+    }
+
+    .play-btn .icon.play{
+      width:0;
+      height:0;
+      border-top:12px solid transparent;
+      border-bottom:12px solid transparent;
+      border-left:18px solid #111;
+      margin-left:3px;
+    }
+    .play-btn .icon.pause{
+      width:18px;
+      height:22px;
+      gap:5px;
+      align-items:center;
+      justify-content:center;
+    }
+    .play-btn .icon.pause span{
+      width:6px;
+      height:22px;
+      background:#111;
+      border-radius:2px;
+    }
+
+    .subnote{
+      margin:12px 0 0;
+      color:var(--muted);
+      font-size:13px;
+    }
+
+    .scriptBox{
+      margin-top:14px;
+      width:100%;
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius:18px;
+      box-shadow:var(--shadow);
+      padding:14px;
+      text-align:left;
+    }
+
+    .scriptHeader{
+      display:flex;
+      justify-content:space-between;
+      align-items:baseline;
+      gap:12px;
+      margin-bottom:8px;
+    }
+
+    .scriptTitle{
+      font-weight:900;
+      font-size:16px;
+    }
+
+    .scriptHint{
+      color:var(--muted);
+      font-size:12px;
+      white-space:nowrap;
+    }
+
+    .scriptBody{
+      max-height:clamp(140px, 24vh, 220px); /* 화면 높이에 맞게 자동 축소 */
+      overflow:auto;
+      padding-right:4px;
+      line-height:1.65;
+    }
+
+    .scriptLine{
+      padding:9px 12px;
+      border-radius:12px;
+      color:#9ca3af;
+      transition: background .15s ease, color .15s ease, transform .1s ease;
+      cursor:pointer;
+      user-select:none;
+    }
+
+    .scriptLine.active{
+      background:#f3f4f6;
+      color:#111827;
+      font-weight:900;
+      transform: translateX(2px);
+    }
+
+    @media (max-width:760px){
+      body{
+        padding:12px 12px 8px;
+      }
+
+      #screen2{
+        max-height:none;
+        overflow:visible;
+      }
+    }
+
+    @media (max-width:520px){
+      .container{
+        padding:16px;
+      }
+
+      .photoBox{
+        height:152px;
+      }
+
+      .skip-btn{
+        flex:1 1 auto;
+        min-width:0;
+      }
+
+      .time{
+        width:44px;
+      }
+
+      .scriptBody{
+        max-height:220px;
+      }
+
+      .scriptHint{
+        display:none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Screen 1 -->
+  <div class="container" id="screen1">
+    <h2 id="screen1Title">비석위의집</h2>
+
+   <div class="language-buttons">
+  <div class="language-row">
+    <button class="lang-btn" onclick="showAudioScreen('ko','한국어', '비석위의 집', 'audio-ko.mp3', 'spot.jpg', 'captions-ko.vtt')">한국어</button>
+    <button class="lang-btn" onclick="showAudioScreen('en','English', 'House on the Gravestone', 'audio-en.mp3', 'spot.jpg', 'captions-en.vtt')">English</button>
+    <button class="lang-btn" onclick="showAudioScreen('cn','中文', '墓碑上的房子', 'audio-cn.mp3', 'spot.jpg', 'captions-cn.vtt')">中文</button>
+  </div>
+
+  <div class="language-row">
+    <button class="lang-btn" onclick="showAudioScreen('ja','日本語', '墓石の上の家', 'audio-ja.mp3', 'spot.jpg', 'captions-ja.vtt')">日本語</button>
+    <button class="lang-btn" onclick="showAudioScreen('vi','Tiếng Việt', 'Ngôi nhà trên bia mộ', 'audio-vi.mp3', 'spot.jpg', 'captions-vi.vtt')">Tiếng Việt</button>
+  </div>
+</div>
+
+    <p class="hint" id="hintText">
+      ※ 음성 파일은 <b>index.html</b>과 같은 폴더에 두고, 파일명을 실제 파일명으로 바꿔주세요.<br/>
+      자막은 <b>captions-ko.vtt</b> 같은 VTT 파일로 준비하면 문장 단위로 자동 하이라이트됩니다.
+    </p>
+  </div>
+
+  <!-- Screen 2 -->
+  <div class="container" id="screen2">
+    <div class="topbar">
+      <button class="back-btn" onclick="goBackToLanguages()">← <span id="backLabel">언어</span></button>
+      <div class="spot-name" id="langBadge">한국어</div>
+    </div>
+
+    <div class="photoBox">
+      <img id="spotImage" src="spot.jpg" alt="스팟 사진">
+    </div>
+
+    <h1 id="spot-title">비석위의 집</h1>
+
+    <div class="seekWrap">
+      <span class="time" id="currentTime">0:00</span>
+      <input id="seekBar" type="range" min="0" max="100" value="0" step="0.1" />
+      <span class="time" id="duration">0:00</span>
+    </div>
+
+    <div class="controls">
+      <button class="skip-btn" id="back10Btn" onclick="skipSeconds(-10)">⏪ -10초</button>
+
+      <button class="play-btn" id="playBtn" aria-label="재생/일시정지" aria-pressed="false">
+        <div class="icon play"></div>
+        <div class="icon pause"><span></span><span></span></div>
+      </button>
+
+      <button class="skip-btn" id="fwd10Btn" onclick="skipSeconds(10)">+10초 ⏩</button>
+    </div>
+
+    <p class="subnote" id="subnoteText">자동재생 ON · 진행바 드래그로 이동 가능</p>
+
+    <audio id="audioPlayer" preload="metadata">
+      <track id="captionTrack" kind="subtitles" srclang="ko" label="Korean" src="" default>
+    </audio>
+
+    <div class="scriptBox" id="scriptBox">
+      <div class="scriptHeader">
+        <span class="scriptTitle" id="scriptTitle">안내 스크립트</span>
+        <span class="scriptHint" id="scriptHint">문장이 자동으로 따라옵니다 · 클릭하면 해당 구간으로 이동</span>
+      </div>
+      <div class="scriptBody" id="scriptBody"></div>
+    </div>
+  </div>
+
+  <script>
+    const screen1 = document.getElementById("screen1");
+    const screen2 = document.getElementById("screen2");
+
+    const audio = document.getElementById("audioPlayer");
+    const playBtn = document.getElementById("playBtn");
+
+    const seekBar = document.getElementById("seekBar");
+    const currentTimeEl = document.getElementById("currentTime");
+    const durationEl = document.getElementById("duration");
+
+    const spotTitleEl = document.getElementById("spot-title");
+    const langBadgeEl = document.getElementById("langBadge");
+    const spotImageEl = document.getElementById("spotImage");
+
+    const captionTrackEl = document.getElementById("captionTrack");
+    const scriptBody = document.getElementById("scriptBody");
+
+    const backLabelEl = document.getElementById("backLabel");
+    const subnoteTextEl = document.getElementById("subnoteText");
+    const scriptTitleEl = document.getElementById("scriptTitle");
+    const scriptHintEl = document.getElementById("scriptHint");
+    const hintTextEl = document.getElementById("hintText");
+    const screen1TitleEl = document.getElementById("screen1Title");
+    const back10BtnEl = document.getElementById("back10Btn");
+    const fwd10BtnEl = document.getElementById("fwd10Btn");
+
+    let isSeeking = false;
+    let isCaptionReady = false;
+    let currentLang = "ko";
+
+    const UI_TEXT = {
+      ko: {
+        screen1Title: "비석위의집",
+        hintHtml: "※ 음성 파일은 <b>index.html</b>과 같은 폴더에 두고, 파일명을 실제 파일명으로 바꿔주세요.<br/>자막은 <b>captions-ko.vtt</b> 같은 VTT 파일로 준비하면 문장 단위로 자동 하이라이트됩니다.",
+        back: "언어",
+        subnote: "자동재생 ON · 진행바 드래그로 이동 가능",
+        scriptTitle: "안내 스크립트",
+        scriptHint: "문장이 자동으로 따라옵니다 · 클릭하면 해당 구간으로 이동",
+        back10: "⏪ -10초",
+        fwd10: "+10초 ⏩",
+        trackLabel: "Korean",
+        srclang: "ko"
+      },
+      en: {
+        screen1Title: "House on the Gravestone",
+        hintHtml: "※ Put audio files in the same folder as <b>index.html</b> and match the filenames.<br/>Prepare a <b>.vtt</b> file like <b>captions-en.vtt</b> to highlight lines automatically.",
+        back: "Language",
+        subnote: "Autoplay ON · Drag the bar to seek",
+        scriptTitle: "Guide Script",
+        scriptHint: "Lines follow automatically · Tap a line to jump",
+        back10: "⏪ Back 10s",
+        fwd10: "Forward 10s ⏩",
+        trackLabel: "English",
+        srclang: "en"
+      },
+      cn: {
+        screen1Title: "墓碑上的房子",
+        hintHtml: "※ 请将音频文件与 <b>index.html</b> 放在同一文件夹，并确保文件名一致。<br/>准备 <b>.vtt</b> 字幕文件（如 <b>captions-cn.vtt</b>）即可自动高亮文本。",
+        back: "语言",
+        subnote: "自动播放开启 · 可拖动进度条跳转",
+        scriptTitle: "讲解文本",
+        scriptHint: "文本会自动跟随 · 点击可跳转到对应位置",
+        back10: "⏪ 后退10秒",
+        fwd10: "前进10秒 ⏩",
+        trackLabel: "Chinese",
+        srclang: "zh"
+      },
+      ja: {
+        screen1Title: "墓石の上の家",
+        hintHtml: "※ 音声ファイルは <b>index.html</b> と同じフォルダに置き、ファイル名を一致させてください。<br/><b>captions-ja.vtt</b> のような <b>.vtt</b> ファイルを用意すると、文章ごとに自動でハイライトされます。",
+        back: "言語",
+        subnote: "自動再生 ON ・バーをドラッグして移動できます",
+        scriptTitle: "案内スクリプト",
+        scriptHint: "文章が自動で追従します ・ クリックでその区間へ移動",
+        back10: "⏪ 10秒戻る",
+        fwd10: "10秒進む ⏩",
+        trackLabel: "Japanese",
+        srclang: "ja"
+      },
+      vi: {
+        screen1Title: "Ngôi nhà trên bia mộ",
+        hintHtml: "※ Hãy đặt các tệp âm thanh cùng thư mục với <b>index.html</b> và khớp đúng tên tệp.<br/>Chuẩn bị tệp <b>.vtt</b> như <b>captions-vi.vtt</b> để phần lời được tô sáng tự động theo câu.",
+        back: "Ngôn ngữ",
+        subnote: "Tự động phát ON · Kéo thanh để tua",
+        scriptTitle: "Kịch bản thuyết minh",
+        scriptHint: "Câu chữ sẽ tự động chạy theo · Chạm để nhảy đến đoạn tương ứng",
+        back10: "⏪ Lùi 10 giây",
+        fwd10: "Tiến 10 giây ⏩",
+        trackLabel: "Vietnamese",
+        srclang: "vi"
+      }
+    };
+
+    function setUIText(langCode) {
+      const t = UI_TEXT[langCode] || UI_TEXT.ko;
+      backLabelEl.textContent = t.back;
+      subnoteTextEl.textContent = t.subnote;
+      scriptTitleEl.textContent = t.scriptTitle;
+      scriptHintEl.textContent = t.scriptHint;
+      screen1TitleEl.textContent = t.screen1Title;
+      hintTextEl.innerHTML = t.hintHtml;
+      back10BtnEl.textContent = t.back10;
+      fwd10BtnEl.textContent = t.fwd10;
+      captionTrackEl.setAttribute("srclang", t.srclang);
+      captionTrackEl.setAttribute("label", t.trackLabel);
+    }
+
+    function showAudioScreen(langCode, languageLabel, title, audioFile, imageFile, vttFile) {
+      currentLang = langCode;
+      setUIText(langCode);
+
+      screen1.style.display = "none";
+      screen2.style.display = "block";
+
+      langBadgeEl.textContent = languageLabel;
+      spotTitleEl.textContent = title;
+
+      if (imageFile) spotImageEl.src = imageFile;
+
+      scriptBody.innerHTML = "";
+      isCaptionReady = false;
+
+      captionTrackEl.src = vttFile || "";
+      captionTrackEl.default = true;
+
+      audio.pause();
+      audio.currentTime = 0;
+      audio.src = audioFile;
+      audio.load();
+
+      const p = audio.play();
+      if (p && typeof p.then === "function") {
+        p.then(() => setPlayingUI(true)).catch(() => setPlayingUI(false));
+      } else {
+        setPlayingUI(true);
+      }
+    }
+
+    function goBackToLanguages() {
+      audio.pause();
+      audio.currentTime = 0;
+      setPlayingUI(false);
+      updateSeekUI(true);
+
+      scriptBody.innerHTML = "";
+      isCaptionReady = false;
+
+      screen2.style.display = "none";
+      screen1.style.display = "block";
+    }
+
+    function togglePlay() {
+      if (audio.paused) {
+        const p = audio.play();
+        if (p && typeof p.then === "function") {
+          p.then(() => setPlayingUI(true)).catch(() => setPlayingUI(false));
+        } else {
+          setPlayingUI(true);
+        }
+      } else {
+        audio.pause();
+        setPlayingUI(false);
+      }
+    }
+
+    playBtn.addEventListener("click", togglePlay);
+
+    function setPlayingUI(isPlaying) {
+      playBtn.classList.toggle("is-playing", isPlaying);
+      playBtn.setAttribute("aria-pressed", isPlaying ? "true" : "false");
+    }
+
+    function skipSeconds(sec) {
+      if (!isFinite(audio.duration)) return;
+      audio.currentTime = clamp(audio.currentTime + sec, 0, audio.duration);
+    }
+
+    function clamp(v, min, max) {
+      return Math.min(max, Math.max(min, v));
+    }
+
+    function formatTime(seconds) {
+      if (!isFinite(seconds)) return "0:00";
+      const m = Math.floor(seconds / 60);
+      const s = Math.floor(seconds % 60);
+      return `${m}:${s < 10 ? "0" : ""}${s}`;
+    }
+
+    function updateSeekUI(force = false) {
+      const dur = audio.duration || 0;
+      const cur = audio.currentTime || 0;
+
+      currentTimeEl.textContent = formatTime(cur);
+      durationEl.textContent = formatTime(dur);
+
+      if ((!isSeeking || force) && dur > 0) {
+        const pct = (cur / dur) * 100;
+        seekBar.value = pct;
+        seekBar.style.background =
+          `linear-gradient(to right, #111 0%, #111 ${pct}%, #e6e6e6 ${pct}%, #e6e6e6 100%)`;
+      }
+
+      if (dur === 0 && force) {
+        seekBar.value = 0;
+        seekBar.style.background =
+          `linear-gradient(to right, #111 0%, #111 0%, #e6e6e6 0%, #e6e6e6 100%)`;
+      }
+    }
+
+    audio.addEventListener("loadedmetadata", updateSeekUI);
+    audio.addEventListener("timeupdate", updateSeekUI);
+
+    audio.addEventListener("ended", () => {
+      setPlayingUI(false);
+      updateSeekUI();
+    });
+
+    seekBar.addEventListener("input", () => {
+      isSeeking = true;
+      const pct = Number(seekBar.value);
+      seekBar.style.background =
+        `linear-gradient(to right, #111 0%, #111 ${pct}%, #e6e6e6 ${pct}%, #e6e6e6 100%)`;
+    });
+
+    seekBar.addEventListener("change", () => {
+      const dur = audio.duration || 0;
+      if (dur > 0) {
+        const pct = Number(seekBar.value) / 100;
+        audio.currentTime = dur * pct;
+      }
+      isSeeking = false;
+      updateSeekUI();
+    });
+
+    function initCaptions() {
+      if (isCaptionReady) return;
+
+      const textTrack = audio.textTracks && audio.textTracks[0];
+      if (!textTrack) return;
+
+      textTrack.mode = "hidden";
+
+      const cues = textTrack.cues;
+      if (!cues || cues.length === 0) return;
+
+      scriptBody.innerHTML = "";
+
+      for (let i = 0; i < cues.length; i++) {
+        const div = document.createElement("div");
+        div.className = "scriptLine";
+        div.dataset.index = i;
+        div.textContent = cues[i].text;
+
+        div.addEventListener("click", () => {
+          audio.currentTime = cues[i].startTime + 0.01;
+          audio.play().catch(()=>{});
+        });
+
+        scriptBody.appendChild(div);
+      }
+
+      textTrack.oncuechange = () => {
+        const active = textTrack.activeCues && textTrack.activeCues[0];
+        const lines = scriptBody.querySelectorAll(".scriptLine");
+        lines.forEach(el => el.classList.remove("active"));
+        if (!active) return;
+
+        for (let i = 0; i < cues.length; i++) {
+          if (cues[i] === active) {
+            const target = scriptBody.querySelector(`.scriptLine[data-index="${i}"]`);
+            if (target) {
+              target.classList.add("active");
+              target.scrollIntoView({ block: "center", behavior: "smooth" });
+            }
+            break;
+          }
+        }
+      };
+
+      isCaptionReady = true;
+    }
+
+    audio.addEventListener("loadedmetadata", () => {
+      let tries = 0;
+      const timer = setInterval(() => {
+        initCaptions();
+        tries++;
+        if (isCaptionReady || tries > 20) clearInterval(timer);
+      }, 100);
+    });
+
+    setUIText("ko");
+  </script>
+
+</body>
+</html>
